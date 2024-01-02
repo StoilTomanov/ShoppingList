@@ -55,9 +55,9 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun ShoppingList() {
     var shoppingItems by remember { mutableStateOf(listOf<ShoppingItem>()) }
-    var showDialog by remember { mutableStateOf(true) }
+    var showDialog by remember { mutableStateOf(false) }
     var itemName by remember { mutableStateOf("") }
-    var itemQuantity by remember { mutableStateOf("") }
+    var itemQuantity by remember { mutableStateOf("1") }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -99,7 +99,7 @@ fun ShoppingList() {
                     Button(
                         modifier = Modifier.width(100.dp),
                         onClick = {
-                            if (itemName.isNotBlank()) {
+                            if (itemName.isNotBlank() && itemQuantity.isNotBlank()) {
                                 val newItem = ShoppingItem(
                                     id = shoppingItems.size + 1,
                                     name = itemName,
