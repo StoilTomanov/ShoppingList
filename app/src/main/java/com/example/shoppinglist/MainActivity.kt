@@ -91,6 +91,8 @@ fun ShoppingList() {
             items(shoppingItems) {
                 ShoppingListItem(it, {
                     itemIdToEdit = it.id
+                    itemName = it.name
+                    itemQuantity = it.quantity.toString()
                     showEditItemDialog = true
                 }, {})
             }
@@ -180,9 +182,21 @@ fun ShoppingList() {
                             if (itemName.isNotBlank() && itemQuantity.isNotBlank()) {
                                 val itemToEdit: ShoppingItem? = findItemById(itemIdToEdit)
                                 itemToEdit?.let {
-                                    itemToEdit.name = itemName
-                                    itemToEdit.quantity = itemQuantity.toInt()
+                                    val updatedShoppingItems = shoppingItems.map {
+                                        if (it.id == itemIdToEdit) {
+                                            it.copy(
+                                                name = itemName,
+                                                quantity = itemQuantity.toInt()
+                                            )
+                                        } else {
+                                            it
+                                        }
+                                    }
+                                    shoppingItems = updatedShoppingItems
                                 }
+                                itemIdToEdit = -1 // default id that we don't use for updates
+                                itemName = ""
+                                showEditItemDialog = false
                             }
                         }) {
                         Text("Save")

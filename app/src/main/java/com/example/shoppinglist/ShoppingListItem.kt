@@ -44,10 +44,10 @@ fun ShoppingListItem(
             text = item.name
         )
         Row {
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = { onEditClick() }) {
                 Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit Button")
             }
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = { onDeleteClick() }) {
                 Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete Button")
             }
         }
