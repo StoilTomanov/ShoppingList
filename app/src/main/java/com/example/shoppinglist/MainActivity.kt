@@ -24,6 +24,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -55,9 +56,15 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun ShoppingList() {
     var shoppingItems by remember { mutableStateOf(listOf<ShoppingItem>()) }
-    var showDialog by remember { mutableStateOf(false) }
+    var showCreateItemDialog by remember { mutableStateOf(false) }
+    var showEditItemDialog by remember { mutableStateOf(false) }
     var itemName by remember { mutableStateOf("") }
     var itemQuantity by remember { mutableStateOf("1") }
+    var itemIdToEdit by remember { mutableIntStateOf(-1) }
+
+    fun findItemById(id: Int): ShoppingItem? {
+        return shoppingItems.find { it.id == id }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -67,7 +74,7 @@ fun ShoppingList() {
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
                 .padding(16.dp),
-            onClick = { showDialog = true }
+            onClick = { showCreateItemDialog = true }
         ) {
             Text(text = "Add item")
             Icon(
@@ -82,13 +89,16 @@ fun ShoppingList() {
                 .padding(16.dp)
         ) {
             items(shoppingItems) {
-                ShoppingListItem(it, {}, {})
+                ShoppingListItem(it, {
+                    itemIdToEdit = it.id
+                    showEditItemDialog = true
+                }, {})
             }
         }
     }
 
-    if (showDialog) {
-        AlertDialog(onDismissRequest = { showDialog = false },
+    if (showCreateItemDialog) {
+        AlertDialog(onDismissRequest = { showCreateItemDialog = false },
             confirmButton = {
                 Row(
                     modifier = Modifier
@@ -106,7 +116,7 @@ fun ShoppingList() {
                                     quantity = itemQuantity.toInt()
                                 )
                                 shoppingItems = shoppingItems + newItem
-                                showDialog = false
+                                showCreateItemDialog = false
                                 itemName = ""
                             }
                         }) {
@@ -114,7 +124,7 @@ fun ShoppingList() {
                     }
                     Button(
                         modifier = Modifier.width(100.dp),
-                        onClick = { showDialog = false }) {
+                        onClick = { showCreateItemDialog = false }) {
                         Text("Cancel")
                     }
                 }
@@ -153,6 +163,70 @@ fun ShoppingList() {
             }
         )
 
+    }
+
+    if (showEditItemDialog) {
+        AlertDialog(onDismissRequest = { showEditItemDialog = false },
+            confirmButton = {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.SpaceAround
+                ) {
+                    Button(
+                        modifier = Modifier.width(100.dp),
+                        onClick = {
+                            if (itemName.isNotBlank() && itemQuantity.isNotBlank()) {
+                                val itemToEdit: ShoppingItem? = findItemById(itemIdToEdit)
+                                itemToEdit?.let {
+                                    itemToEdit.name = itemName
+                                    itemToEdit.quantity = itemQuantity.toInt()
+                                }
+                            }
+                        }) {
+                        Text("Save")
+                    }
+                    Button(
+                        modifier = Modifier.width(100.dp),
+                        onClick = { showEditItemDialog = false }) {
+                        Text("Discard")
+                    }
+                }
+
+            },
+            title = {
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    text = "Edit Shopping Item"
+                )
+            },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = itemName,
+                        onValueChange = { itemName = it },
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    )
+
+                    OutlinedTextField(
+                        value = itemQuantity,
+                        onValueChange = { itemQuantity = it },
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Number
+                        )
+                    )
+                }
+            }
+        )
     }
 }
 
