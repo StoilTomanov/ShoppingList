@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -58,12 +59,19 @@ fun ShoppingList() {
     var shoppingItems by remember { mutableStateOf(listOf<ShoppingItem>()) }
     var showCreateItemDialog by remember { mutableStateOf(false) }
     var showEditItemDialog by remember { mutableStateOf(false) }
+    var showConfirmDeleteDialog by remember { mutableStateOf(false) }
     var itemName by remember { mutableStateOf("") }
     var itemQuantity by remember { mutableStateOf("1") }
     var itemIdToEdit by remember { mutableIntStateOf(-1) }
+    var itemIdToDelete by remember { mutableIntStateOf(-1) }
 
     fun findItemById(id: Int): ShoppingItem? {
         return shoppingItems.find { it.id == id }
+    }
+
+    fun resetValues() {
+        itemName = ""
+        itemQuantity = "1"
     }
 
     Column(
@@ -74,7 +82,9 @@ fun ShoppingList() {
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
                 .padding(16.dp),
-            onClick = { showCreateItemDialog = true }
+            onClick = {
+                showCreateItemDialog = true
+                resetValues()}
         ) {
             Text(text = "Add item")
             Icon(
@@ -90,11 +100,16 @@ fun ShoppingList() {
         ) {
             items(shoppingItems) {
                 ShoppingListItem(it, {
+                    resetValues()
                     itemIdToEdit = it.id
                     itemName = it.name
                     itemQuantity = it.quantity.toString()
                     showEditItemDialog = true
-                }, {})
+                }, {
+                    resetValues()
+                    showConfirmDeleteDialog = true
+                    itemIdToDelete = it.id
+                })
             }
         }
     }
@@ -119,14 +134,15 @@ fun ShoppingList() {
                                 )
                                 shoppingItems = shoppingItems + newItem
                                 showCreateItemDialog = false
-                                itemName = ""
                             }
                         }) {
                         Text("Add")
                     }
                     Button(
                         modifier = Modifier.width(100.dp),
-                        onClick = { showCreateItemDialog = false }) {
+                        onClick = {
+                            showCreateItemDialog = false
+                        }) {
                         Text("Cancel")
                     }
                 }
@@ -195,7 +211,6 @@ fun ShoppingList() {
                                     shoppingItems = updatedShoppingItems
                                 }
                                 itemIdToEdit = -1 // default id that we don't use for updates
-                                itemName = ""
                                 showEditItemDialog = false
                             }
                         }) {
@@ -203,7 +218,9 @@ fun ShoppingList() {
                     }
                     Button(
                         modifier = Modifier.width(100.dp),
-                        onClick = { showEditItemDialog = false }) {
+                        onClick = {
+                            showEditItemDialog = false
+                        }) {
                         Text("Discard")
                     }
                 }
@@ -238,6 +255,28 @@ fun ShoppingList() {
                             keyboardType = KeyboardType.Number
                         )
                     )
+                }
+            }
+        )
+    }
+    if (showConfirmDeleteDialog) {
+        AlertDialog(onDismissRequest = { showEditItemDialog = false },
+            text = {
+                Text(text = "Are you sure you want to delete this item?")
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    shoppingItems = shoppingItems.filter { it.id != itemIdToDelete }
+                    showConfirmDeleteDialog = false
+                }) {
+                    Text(text = "Confirm")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showConfirmDeleteDialog = false
+                }) {
+                    Text(text = "Cancel")
                 }
             }
         )
